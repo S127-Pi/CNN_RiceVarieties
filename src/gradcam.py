@@ -12,7 +12,7 @@ model = CNNModel()
 test_dataset = CustomImageFolder(root="../assignment_test")
 test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
-cam_extractor = GradCAM(model, target_layer="conv_layer")  # Specify a convolutional layer
+cam_extractor = GradCAM(model, target_layer="conv_layer")
 # Forward pass and extract CAM
 scores = model(image.unsqueeze(0).to(device))
 cam = cam_extractor(class_idx=scores.argmax().item(), scores=scores)

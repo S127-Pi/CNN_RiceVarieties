@@ -7,10 +7,10 @@ class CNNModel(nn.Module):
         super(CNNModel, self).__init__()
         """
         Output size after convolution filter
-        Output size= (w-f+2P)/s + 1
+        Output size= (w-f+2p)/s + 1
         w: width
         f: kernel size
-        P: padding
+        p: padding
         s: stride
         
         Input shape= (256, 3, 150, 150)
