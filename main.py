@@ -5,7 +5,6 @@ import random
 import torch
 import torch.nn as nn
 import torchvision
-from skimage import io
 import torchvision.transforms as transforms
 from torchvision import datasets
 from torch.optim import Adam, SGD
@@ -61,9 +60,9 @@ test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 # print(len(train_dataset))
 # print(len(test_dataset))
 
-class Model(nn.Module):
+class CNNModel(nn.Module):
     def __init__(self, num_classes=4):
-        super(Model, self).__init__()
+        super(CNNModel, self).__init__()
         """
         Output size after convolution filter
         Output size= (w-f+2P)/s + 1
@@ -89,7 +88,7 @@ class Model(nn.Module):
         self.conv2 = nn.Conv2d(in_channels=12, out_channels=20, 
                                kernel_size=3, stride=1, padding=1)
         # New shape = (256, 20, 75, 75)
-        self.bn = nn.BatchNorm2d(num_features=20)
+        self.bn2 = nn.BatchNorm2d(num_features=20)
         self.relu2 = nn.ReLU()
         # shape = (256, 20, 75, 75)
             
@@ -102,27 +101,17 @@ class Model(nn.Module):
         self.fc = nn.Linear(in_features=32*75*75, out_features=num_classes)
         
     def forward(self, input):
-        output = self.conv1(input)
-        output = self.bn1(output)
-        output = self.relu1(output)
-        
+        output = self.relu1(self.bn1(self.conv1(input)))
         output = self.pool(output)
-        
-        output = self.conv2(output)
-        output = self.bn2(output)
-        output = self.relu2(output)          
-        
-        output = self.conv3(output)
-        output = self.bn3(output)
-        output = self.relu3(output)
+        output = self.relu2(self.bn2(self.conv2(output)))         
+        output = self.relu3(self.bn3(self.conv3(output)))
         
         output = output.view(-1, 32*75*75)
-        
         output = self.fc(output)
         
         return output        
 # %%
-model = Model(num_classes=4).to(device)
+model = CNNModel(num_classes=4).to(device)
 
 optimizer = SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.0001)
 loss_function = nn.CrossEntropyLoss()
@@ -135,7 +124,6 @@ for epoch in range(1, num_epochs+1):
     model.train()
     train_accuracy = 0.0
     train_loss = 0.0
-    
     for i, (images, labels) in tqdm(enumerate(train_loader), desc="Mini-Batch"):
         images, labels = images.to(device), labels.to(device)
         optimizer.zero_grad()
@@ -165,6 +153,7 @@ for epoch in range(1, num_epochs+1):
         best_state_dict = model.state_dict()
     
     print(f"{epoch=},{train_accuracy=},{train_loss=},{test_accuracy=},{best_accuracy=}")
+os.mkdir("checkpoint")
 torch.save(best_state_dict, "CNNmodel.pt")
     
     
