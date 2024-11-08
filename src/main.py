@@ -61,7 +61,7 @@ def train(model):
         
         if val_accuracy > best_accuracy:
             best_accuracy = val_accuracy
-            best_state_dict = model.state_dict()
+            best_state_dict = {key: value.cpu() for key, value in model.state_dict().items()}
             checkpoint["Training accuracy"], checkpoint["Validation accuracy"] = train_accuracy, val_accuracy
 
 
@@ -105,6 +105,7 @@ def test(model):
 
 if __name__ == '__main__':
     model = CNNModel(num_classes=4).to(device)
+    print(device)
     print(args)
     if (args.train):
         train(model)
