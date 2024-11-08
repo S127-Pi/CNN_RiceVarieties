@@ -21,7 +21,7 @@ def set_seed(seed):
 def load_model(model):
     if os.path.exists(f"{args.checkpoint}/CNNmodel.pt"):
         # Load the model if the file exists
-        model.load_state_dict(torch.load(f"{args.checkpoint}/CNNmodel.pt"),map_location=device)
+        model.load_state_dict(torch.load(f"{args.checkpoint}/CNNmodel.pt"))
         model.to(device)
         model.eval()
         print("Model loaded")
