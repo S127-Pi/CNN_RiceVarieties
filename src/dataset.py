@@ -2,9 +2,10 @@
 import torchvision.transforms as transforms
 from torchvision import datasets
 from pathlib import Path
+from config import *
 
 class CustomImageFolder(datasets.ImageFolder):
-    def __init__(self, root="../data/assignment_train"):
+    def __init__(self, root=args.train_dir):
         super().__init__(root=root)
         self.root = root
         self.transform = transforms.Compose([transforms.Resize((150, 150)),

@@ -7,21 +7,14 @@ import numpy as np
 import os
 import warnings
 
+from config import args
 from dataset import CustomImageFolder
 from model import CNNModel
 from utils import *
 
 set_seed(42)
 model = CNNModel()
-
-if os.path.exists("../checkpoint/CNNmodel.pt"):
-    # Load the model if the file exists
-    model.load_state_dict(torch.load("../checkpoint/CNNmodel.pt"))
-    model.to(device)
-    model.eval()
-    print("Model loaded")
-else:
-    warnings.warn("Checkpoint file not found.", ResourceWarning)
+model = load_model(model)
 
 conv_weights = [] 
 conv_layers = [] 
@@ -32,7 +25,7 @@ for module in model.children():
 
 
 test_dataset = CustomImageFolder(root="../data/assignment_test")
-test_loader = DataLoader(test_dataset, batch_size=1, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=1, shuffle=True, pin_memory=True)
 label_dict = {"breed9": 0, "breed28": 1, "breed41": 2, "other": 3}
 label_set = set()
 unique_breed = []

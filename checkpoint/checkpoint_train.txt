@@ -1,0 +1,1 @@
+{"Training accuracy": 0.9381750465549348, "Validation accuracy": 0.9488082340195017}
