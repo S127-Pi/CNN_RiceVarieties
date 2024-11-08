@@ -1,12 +1,13 @@
 
 import torchvision.transforms as transforms
 from torchvision import datasets
+from pathlib import Path
 
 class CustomImageFolder(datasets.ImageFolder):
     def __init__(self, root="../data/assignment_train"):
         super().__init__(root=root)
         self.root = root
-        self.transform = transforms.Compose([transforms.Resize((150, 150)), #(224,224)
+        self.transform = transforms.Compose([transforms.Resize((150, 150)),
                                              transforms.ToTensor(),
                                              transforms.Normalize([0.5, 0.5, 0.5], 
                                                                   [0.5, 0.5, 0.5])
@@ -17,11 +18,13 @@ class CustomImageFolder(datasets.ImageFolder):
     def __getitem__(self, index):
         # Original image and label
         image, label = super().__getitem__(index)
-        
         # Obtain the original class name
         class_name = self.classes[label] 
-        
         # Custom labeling
         custom_label = self.labels_dict.get(class_name, self.labels_dict["other"])
+
+        image_path = self.samples[index][0]
+        folder_name = Path(image_path).parent.name
         
-        return image, custom_label
+        
+        return image, custom_label, image_path

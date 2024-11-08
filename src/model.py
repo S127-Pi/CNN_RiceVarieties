@@ -1,6 +1,4 @@
-import torch
 import torch.nn as nn
-import torchvision.transforms as transforms
 
 class CNNModel(nn.Module):
     def __init__(self, num_classes=4):

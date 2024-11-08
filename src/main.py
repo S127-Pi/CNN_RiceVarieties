@@ -8,31 +8,23 @@ from torch.utils.data import random_split, DataLoader
 import numpy as np
 import os
 import json
+
+from utils import *
 from model import CNNModel
 from dataset import CustomImageFolder
 # %%
-device = torch.device("mps" if torch.backends.mps.is_available() else
-                      "cuda" if torch.cuda.is_available() else
-                      "cpu")
-def set_seed(seed):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
 
-# Set seed for reproducibility
 set_seed(42)
 
 train_dataset = CustomImageFolder(root="../data/assignment_train")
 train_size = int(0.8 * len(train_dataset)) 
 val_size = len(train_dataset) - train_size
 train_subset, val_subset = random_split(train_dataset, [train_size, val_size])
-train_loader = DataLoader(train_subset, batch_size=256, shuffle=True)
-val_loader = DataLoader(val_subset, batch_size=256, shuffle=False)
+train_loader = DataLoader(train_subset, batch_size=64, shuffle=True)
+val_loader = DataLoader(val_subset, batch_size=64, shuffle=False)
 
 test_dataset = CustomImageFolder(root="../data/assignment_test")
-test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 print(f"{train_size=}, {val_size=}")
  
 # %%
