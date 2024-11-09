@@ -7,6 +7,7 @@ from torch.utils.data import random_split, DataLoader, WeightedRandomSampler
 import numpy as np
 import os
 import json
+import pandas as pd
 from collections import Counter
 
 from config import args
@@ -36,7 +37,6 @@ def train(model, device):
                               batch_size=args.batch_size, pin_memory=True)
     validation_loader = DataLoader(validation_set, batch_size=args.batch_size, shuffle=False, pin_memory=True)
     
-
     optimizer = SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.0001)
     loss_function = nn.CrossEntropyLoss()
     early_stopping = EarlyStopping(tolerance=5, min_delta=10)
@@ -124,25 +124,36 @@ def test(model, device):
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, pin_memory=True)
 
     checkpoint = {}
+    results = []
     test_accuracy=0.0
 
     model.eval()
     with torch.no_grad():
-        for i, (images, labels, _) in enumerate(test_loader):
+        for i, (images, labels, paths) in enumerate(test_loader):
             images, labels = images.to(device), labels.to(device)
             outputs=model(images)
             _, predictions = torch.max(outputs.data, 1)
             test_accuracy += int(torch.sum(predictions==labels.data))
+            
+            for path, label, prediction in zip(paths, labels.cpu(), predictions.cpu()):
+                results.append({
+                    'path': path,
+                    'label': label.item(),
+                    'prediction': prediction.item()
+                })
         test_accuracy = test_accuracy/len(test_dataset)
 
         print(f"{test_accuracy=}")
         checkpoint["Test accuracy"] = test_accuracy
+        df_results = pd.DataFrame(results)
 
     try:
         with open(f'{args.checkpoint}/checkpoint_test.txt', 'w') as file:
             file.write(json.dumps(checkpoint)) 
-    except:
-        print("Error")
+        df_results.to_csv(f'{args.checkpoint}/predictions.csv', index=False)
+        print("Checkpoint and predictions saved successfully.")
+    except Exception as e:
+        print(e)
 
 if __name__ == '__main__':
     device = get_device()
