@@ -74,7 +74,7 @@ def train(model, device):
         validation_accuracy=0.0
         for i, (images, labels, _) in enumerate(validation_loader):
             images, labels = images.to(device), labels.to(device)
-            outputs=model(images)
+            outputs = model(images)
             _, predictions = torch.max(outputs.data, 1)
             validation_accuracy += int(torch.sum(predictions==labels.data))
         validation_accuracy = validation_accuracy/validation_size
