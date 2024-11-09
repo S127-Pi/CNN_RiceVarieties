@@ -13,7 +13,7 @@ from config import args
 from earlystopping import EarlyStopping
 from utils import *
 from model import CNNModel
-from dataset import CustomImageFolder
+from dataset import *
 
 def train(model, device):
     set_seed(42)
@@ -21,6 +21,7 @@ def train(model, device):
     train_size = int(0.8 * len(train_set)) 
     validation_size = len(train_set) - train_size
     train_set, validation_set = random_split(train_set, [train_size, validation_size])
+    train_set, validation_set = TransformedDataset(train_set), TransformedDataset(validation_set)
 
     targets = np.array([label for _, label, _ in train_set])
     # Calculate the frequency of each class
@@ -119,6 +120,7 @@ def test(model, device):
     set_seed(42)
     model = load_model(model).to(device)
     test_dataset = CustomImageFolder(root=args.test_dir)
+    test_dataset = TransformedDataset(test_dataset)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, pin_memory=True)
 
     checkpoint = {}
