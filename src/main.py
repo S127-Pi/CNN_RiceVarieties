@@ -10,8 +10,10 @@ import os
 import json
 from torchsampler import ImbalancedDatasetSampler
 from collections import Counter
+import matplotlib.pyplot as plt
 
 from config import args
+from earlystopping import EarlyStopping
 from utils import *
 from model import CNNModel
 from dataset import CustomImageFolder
@@ -44,11 +46,16 @@ def train(model, device):
     num_epochs = args.epochs
     best_accuracy = 0.0
     best_state_dict = None
+    early_stopping = EarlyStopping(tolerance=5, min_delta=10)
 
     for epoch in range(1, num_epochs+1):
         model.train()
         train_accuracy = 0.0
-        train_loss = 0.0
+        validation_accuracy= 0.0
+        validation_loss = []
+        train_loss = []
+        # validation_loss = 0.0
+        # train_loss = 0.0
         total_size = 0
         class_counter = Counter()
         for i, (images, labels, _) in tqdm(enumerate(train_loader), desc="Mini-Batch"):
@@ -62,22 +69,28 @@ def train(model, device):
             optimizer.step()
             total_size += labels.size(0)
             
-            train_loss += outputs.shape[0] * loss.item()
+            # train_loss += outputs.shape[0] * loss.item()
+            train_loss.append[outputs.shape[0] * loss.item()]
             _, predictions = torch.max(outputs.data, 1)
             train_accuracy += int(torch.sum(predictions==labels.data))
 
         train_accuracy = train_accuracy/total_size
-        train_loss = train_loss/total_size
+        # train_loss = train_loss/total_size
+        train_loss = train_loss[-1]/total_size
         print(class_counter)
         
         model.eval()
-        validation_accuracy=0.0
         for i, (images, labels, _) in enumerate(validation_loader):
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
+            loss = loss_function(outputs, labels)
+            # validation_loss += outputs.shape[0] * loss.item()
+            validation_loss.append(outputs.shape[0] * loss.item())
             _, predictions = torch.max(outputs.data, 1)
             validation_accuracy += int(torch.sum(predictions==labels.data))
         validation_accuracy = validation_accuracy/validation_size
+        # validation_loss = validation_loss/validation_size
+        validation_loss = validation_loss[-1]/validation_size
         
         if validation_accuracy > best_accuracy:
             best_accuracy = validation_accuracy
@@ -85,7 +98,21 @@ def train(model, device):
             checkpoint["Training accuracy"], checkpoint["Validation accuracy"] = train_accuracy, validation_accuracy
 
 
-        print(f"{epoch=},{train_accuracy=},{train_loss=},{validation_accuracy=},{best_accuracy=}")
+        # print(f"{epoch=},{train_accuracy=},{train_loss=},{validation_accuracy=},{best_accuracy=}")
+        print(f"{epoch=},{train_accuracy=},{train_loss[-1]=},{validation_accuracy=},{best_accuracy=}")
+
+        # early stopping
+        # early_stopping(train_loss, validation_loss)
+        early_stopping(train_loss[-1], validation_loss[-1])
+        if early_stopping.early_stop:
+            print(f"Early stopping at epoch:{epoch}\n {checkpoint=}")
+            break
+    plt.plot(train_loss, label='Train Loss')
+    plt.plot(validation_loss, label='Train Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.title('Training and Validation Loss')
+    plt.savefig('loss_plot.png', format='png', dpi=300)
 
 
     if not os.path.exists(args.checkpoint):
