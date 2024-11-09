@@ -1,6 +1,5 @@
 # %%
 from tqdm import tqdm
-import random
 import torch
 import torch.nn as nn
 from torch.optim import SGD
@@ -8,7 +7,6 @@ from torch.utils.data import random_split, DataLoader, WeightedRandomSampler
 import numpy as np
 import os
 import json
-from torchsampler import ImbalancedDatasetSampler
 from collections import Counter
 
 from config import args
@@ -18,7 +16,6 @@ from model import CNNModel
 from dataset import CustomImageFolder
 
 def train(model, device):
-
     set_seed(42)
     train_set = CustomImageFolder(root=args.train_dir)
     train_size = int(0.8 * len(train_set)) 
@@ -103,7 +100,6 @@ def train(model, device):
         if early_stopping.early_stop:
             print(f"Early stopping at epoch:{epoch}\n {checkpoint=}")
             break
-    
     try:
         plot_accuracy(args.epochs, train_epoch_accuracy, validation_epoch_accuracy )
     except Exception as e:
