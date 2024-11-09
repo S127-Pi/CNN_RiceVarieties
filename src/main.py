@@ -44,16 +44,16 @@ def train(model, device):
     num_epochs = args.epochs
     best_accuracy = 0.0
     best_state_dict = None
-    class_counter = Counter()
 
     for epoch in range(1, num_epochs+1):
         model.train()
         train_accuracy = 0.0
         train_loss = 0.0
         total_size = 0
+        class_counter = Counter()
         for i, (images, labels, _) in tqdm(enumerate(train_loader), desc="Mini-Batch"):
-            if epoch == 1:
-                class_counter.update(labels.cpu().numpy())
+            
+            class_counter.update(labels.cpu().numpy())
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = model(images)
