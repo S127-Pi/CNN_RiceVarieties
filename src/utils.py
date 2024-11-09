@@ -5,10 +5,11 @@ import os
 import warnings
 from config import *
 
-
-device = torch.device("mps" if torch.backends.mps.is_available() else
-                      "cuda" if torch.cuda.is_available() else
-                      "cpu")
+def get_device():
+    device = torch.device("mps" if torch.backends.mps.is_available() else
+                        "cuda" if torch.cuda.is_available() else
+                        "cpu")
+    return device
 
 # Set seed for reproducibility
 def set_seed(seed):
@@ -19,6 +20,7 @@ def set_seed(seed):
         torch.cuda.manual_seed_all(seed)
 
 def load_model(model):
+    device = get_device()
     if os.path.exists(f"{args.checkpoint}/CNNmodel.pt"):
         # Load the model if the file exists
         model.load_state_dict(torch.load(f"{args.checkpoint}/CNNmodel.pt"))
