@@ -15,6 +15,7 @@ def _parse_args():
     args.add_argument('--train_dir', type=str, help="Train directory path", default="../data/assignment_train")
     args.add_argument('--test_dir', type=str, help="Test directory path", default="../data/assignment_test")
     args.add_argument('--batch_size', type=int, help="Batch size", default=64)
+    args.add_argument('--epochs', type=int, help="Number of epoch", default=10)
     args.add_argument('--checkpoint', type=str, help="Checkpoint path", default="../checkpoint")
     return args.parse_known_args()
 
