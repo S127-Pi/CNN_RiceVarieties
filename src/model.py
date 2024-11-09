@@ -43,7 +43,7 @@ class CNNModel(nn.Module):
     def forward(self, input):
         output = self.relu1(self.bn1(self.conv1(input)))
         output = self.pool(output)
-        output = self.relu2(self.bn2(self.conv2(output)))         
+        output = self.relu2(self.bn2(self.conv2(output)))
         output = self.relu3(self.bn3(self.conv3(output)))
         
         output = output.view(-1, 32*75*75)

@@ -23,9 +23,7 @@ class CustomImageFolder(datasets.ImageFolder):
         class_name = self.classes[label] 
         # Custom labeling
         custom_label = self.labels_dict.get(class_name, self.labels_dict["other"])
-
         image_path = self.samples[index][0]
-        folder_name = Path(image_path).parent.name
         
         
         return image, custom_label, image_path
