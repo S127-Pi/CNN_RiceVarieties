@@ -4,11 +4,13 @@ import torch
 import torch.nn as nn
 from torch.optim import SGD
 from torch.utils.data import random_split, DataLoader, WeightedRandomSampler
+from torcheval.metrics.functional import multiclass_f1_score
 import numpy as np
 import os
 import json
 import pandas as pd
 from collections import Counter
+import warnings
 
 from config import args
 from earlystopping import EarlyStopping
@@ -17,6 +19,7 @@ from model import CNNModel
 from dataset import *
 
 def train(model, device):
+    warnings.filterwarnings("ignore")
     set_seed(42)
     train_set = CustomImageFolder(root=args.train_dir)
     train_size = int(0.8 * len(train_set)) 
@@ -47,13 +50,20 @@ def train(model, device):
     best_state_dict = None
     train_epoch_accuracy = []
     validation_epoch_accuracy = []
+    best_f1 = 0.0
+    
     for epoch in range(1, num_epochs+1):
         train_accuracy = 0.0
         train_loss = 0.0
         validation_accuracy= 0.0
         validation_loss = 0.0
+        
+        validation_f1_score = 0.0
+        train_f1_scores = []
         total_size = 0
         class_counter = Counter()
+        all_predictions = []
+        all_labels = []
         
         model.train()
         for i, (images, labels, _) in tqdm(enumerate(train_loader), desc="Mini-Batch"):
@@ -70,12 +80,24 @@ def train(model, device):
             train_loss += outputs.shape[0] * loss.item()
             _, predictions = torch.max(outputs.data, 1)
             train_accuracy += int(torch.sum(predictions==labels.data))
-
+            all_predictions.extend(predictions.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
+        
+        train_f1_score = multiclass_f1_score(
+                                            torch.tensor(all_predictions),
+                                            torch.tensor(all_labels),
+                                            num_classes=4,
+                                            average="weighted"
+                                            ).item()
         train_accuracy = train_accuracy/total_size
         train_loss = train_loss/total_size
         train_epoch_accuracy.append(train_accuracy)
+        train_f1_score = sum(train_f1_scores) / len(train_f1_scores)
         print(class_counter)
         
+        
+        all_predictions = []
+        all_labels = []
         model.eval()
         with torch.no_grad():
             for i, (images, labels, _) in enumerate(validation_loader):
@@ -85,16 +107,29 @@ def train(model, device):
                 validation_loss += outputs.shape[0] * loss.item()
                 _, predictions = torch.max(outputs.data, 1)
                 validation_accuracy += int(torch.sum(predictions==labels.data))
+
+            validation_f1_score = multiclass_f1_score(
+                                            torch.tensor(all_predictions),
+                                            torch.tensor(all_labels),
+                                            num_classes=4,
+                                            average="weighted"
+                                            ).item()
             validation_accuracy = validation_accuracy/validation_size
             validation_loss = validation_loss/validation_size
             validation_epoch_accuracy.append(validation_accuracy)
             
             if validation_accuracy > best_accuracy:
                 best_accuracy = validation_accuracy
+                # best_state_dict = {key: value.cpu() for key, value in model.state_dict().items()}
+                # checkpoint["Training accuracy"], checkpoint["Validation accuracy"] = train_accuracy, validation_accuracy
+            if validation_f1_score > best_f1:
+                best_f1 = validation_f1_score
                 best_state_dict = {key: value.cpu() for key, value in model.state_dict().items()}
-                checkpoint["Training accuracy"], checkpoint["Validation accuracy"] = train_accuracy, validation_accuracy
+                checkpoint["Training F1"], checkpoint["Validation F1"] = train_f1_score, validation_f1_score
+                
 
-        print(f"{epoch=},{train_accuracy=},{train_loss=},{validation_accuracy=},{validation_loss=}, {best_accuracy=}")
+        # print(f"{epoch=},{train_accuracy=},{train_loss=},{validation_accuracy=},{validation_loss=}, {best_accuracy=}")
+        print(f"{epoch=},{train_accuracy=},{train_f1_score=}, {validation_accuracy=}, {validation_f1_score}, {best_f1=}")
 
         # early stopping
         early_stopping(train_loss, validation_loss)
@@ -126,6 +161,9 @@ def test(model, device):
     checkpoint = {}
     results = []
     test_accuracy=0.0
+    test_f1_scores = []
+    all_predictions = []
+    all_labels = []
 
     model.eval()
     with torch.no_grad():
@@ -134,6 +172,10 @@ def test(model, device):
             outputs=model(images)
             _, predictions = torch.max(outputs.data, 1)
             test_accuracy += int(torch.sum(predictions==labels.data))
+            # test_batch_f1 = multiclass_f1_score(predictions, labels, num_classes=4, average="weighted")
+            # test_f1_scores.append(test_batch_f1.item())
+            all_predictions.extend(predictions.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
             
             for path, label, prediction in zip(paths, labels.cpu(), predictions.cpu()):
                 results.append({
@@ -142,9 +184,16 @@ def test(model, device):
                     'prediction': prediction.item()
                 })
         test_accuracy = test_accuracy/len(test_dataset)
-
-        print(f"{test_accuracy=}")
+        # test_f1_score = sum(test_f1_scores) / len(test_f1_scores)   
+        test_f1_score = multiclass_f1_score(
+                                            torch.tensor(all_predictions),
+                                            torch.tensor(all_labels),
+                                            num_classes=4,
+                                            average="weighted"
+                                            )
+        print(f"{test_accuracy=},{test_f1_score=}")
         checkpoint["Test accuracy"] = test_accuracy
+        checkpoint["Test F1"] = test_f1_score.item()
         df_results = pd.DataFrame(results)
 
     try:

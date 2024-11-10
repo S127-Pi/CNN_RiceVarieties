@@ -1,1 +1,1 @@
-{"Training accuracy": 0.9663788725241239, "Validation accuracy": 0.9432556879739978}
+{"Training F1": 0.9911085985181651, "Validation F1": 0.9134605259730898}
