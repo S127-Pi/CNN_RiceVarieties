@@ -15,7 +15,7 @@ def _parse_args():
     args.add_argument("--train_dir", type=str, help="Train directory path", default="../data/assignment_train")
     args.add_argument("--test_dir", type=str, help="Test directory path", default="../data/assignment_test")
     args.add_argument("--num_classes", type=int, help="Number of classes", default=4)
-    args.add_argument("--batch_size", type=int, help="Batch size", default=64)
+    args.add_argument("--batch_size", type=int, help="Batch size", default=90)
     args.add_argument("--lr", type=float, help="Learning rate", default=0.01)
     args.add_argument("--momentum", type=float, help="Momentum", default=0.9),
     args.add_argument("--weight_decay", type=float, help="Weight decay", default=0.0001)
