@@ -97,7 +97,7 @@ if __name__ == "__main__":
     print("Best accuracy:", study.best_value)
 
     try:
-        with open(f'{args.checkpoint}/checkpoint_test.txt', 'w') as file:
+        with open(f'{args.checkpoint}/checkpoint_hyperparams.txt', 'w') as file:
             file.write(json.dumps(study.best_params)) 
     except Exception as e:
         print(e)
