@@ -1,0 +1,1 @@
+cd ../src && python main.py --train True --test True
