@@ -42,8 +42,6 @@ def objective(trial):
 
     # Model
     model = pretrained_model
-    num_features = model.fc.in_features
-    model.fc = nn.Linear(num_features, args.num_classes) 
     device = get_device()
     model.to(device)
 

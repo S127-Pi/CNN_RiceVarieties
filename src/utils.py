@@ -31,7 +31,6 @@ def plot_accuracy(epochs, train_accuracy, validation_accuracy):
     plt.savefig(f'{args.checkpoint}/accuracy_plot.png', format='png', dpi=300)
 
 def load_model(model):
-    warnings.filterwarnings("ignore")
     device = get_device()
     if os.path.exists(f"{args.checkpoint}/model.pt"):
         # Load the model if the file exists

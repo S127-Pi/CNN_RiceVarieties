@@ -166,14 +166,13 @@ def test(model, device):
     checkpoint = {}
     results = []
     test_accuracy=0.0
-    test_f1_scores = []
     all_predictions = []
     all_labels = []
 
     model.eval()
     # Model testing
     with torch.no_grad():
-        for i, (images, labels, paths) in enumerate(test_loader):
+        for i, (images, labels, paths) in tqdm(enumerate(test_loader), desc="Mini-Batch"):
             images, labels = images.to(device), labels.to(device)
             outputs=model(images)
             _, predictions = torch.max(outputs.data, 1)
@@ -187,17 +186,17 @@ def test(model, device):
                     'label': label.item(),
                     'prediction': prediction.item()
                 })
-        
-        test_accuracy = test_accuracy/len(test_dataset)
-        test_f1_score = multiclass_f1_score(torch.tensor(all_predictions),
-                                            torch.tensor(all_labels),
-                                            num_classes=4,
-                                            average="weighted"
-                                            ).item()
-        print(f"{test_accuracy=},{test_f1_score=}")
-        checkpoint["Test accuracy"] = test_accuracy
-        checkpoint["Test F1"] = test_f1_score
-        df_results = pd.DataFrame(results)
+
+    test_accuracy = test_accuracy/len(test_dataset)
+    test_f1_score = multiclass_f1_score(torch.tensor(all_predictions),
+                                        torch.tensor(all_labels),
+                                        num_classes=4,
+                                        average="weighted"
+                                        ).item()
+    print(f"{test_accuracy=},{test_f1_score=}")
+    checkpoint["Test accuracy"] = test_accuracy
+    checkpoint["Test F1"] = test_f1_score
+    df_results = pd.DataFrame(results)
 
     # Save checkpoint
     try:
@@ -210,9 +209,7 @@ def test(model, device):
 
 if __name__ == '__main__':
     device = get_device()
-    model = pretrained_model
-    num_features = model.fc.in_features
-    model.fc = nn.Linear(num_features, args.num_classes) # Adjust final layer
+    model = pretrained_model 
     model.to(device)
 
     print(device)
