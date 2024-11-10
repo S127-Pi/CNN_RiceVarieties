@@ -1,6 +1,7 @@
 # %%
 from tqdm import tqdm
 import torch
+from torchvision import models
 import torch.nn as nn
 from torch.optim import SGD
 from torch.utils.data import random_split, DataLoader, WeightedRandomSampler
@@ -92,7 +93,7 @@ def train(model, device):
         train_accuracy = train_accuracy/total_size
         train_loss = train_loss/total_size
         train_epoch_accuracy.append(train_accuracy)
-        train_f1_score = sum(train_f1_scores) / len(train_f1_scores)
+        # train_f1_score = sum(train_f1_scores) / len(train_f1_scores)
         print(class_counter)
         
         
@@ -107,6 +108,8 @@ def train(model, device):
                 validation_loss += outputs.shape[0] * loss.item()
                 _, predictions = torch.max(outputs.data, 1)
                 validation_accuracy += int(torch.sum(predictions==labels.data))
+                all_predictions.extend(predictions.cpu().numpy())
+                all_labels.extend(labels.cpu().numpy())
 
             validation_f1_score = multiclass_f1_score(
                                             torch.tensor(all_predictions),
@@ -129,7 +132,7 @@ def train(model, device):
                 
 
         # print(f"{epoch=},{train_accuracy=},{train_loss=},{validation_accuracy=},{validation_loss=}, {best_accuracy=}")
-        print(f"{epoch=},{train_accuracy=},{train_f1_score=}, {validation_accuracy=}, {validation_f1_score}, {best_f1=}")
+        print(f"{epoch=},{train_accuracy=},{train_f1_score=}, {validation_accuracy=}, {validation_f1_score=}, {best_f1=}")
 
         # early stopping
         early_stopping(train_loss, validation_loss)
@@ -206,7 +209,12 @@ def test(model, device):
 
 if __name__ == '__main__':
     device = get_device()
-    model = CNNModel(num_classes=4).to(device)
+    # model = CNNModel(num_classes=4).to(device)
+    NUM_CLASSES = 4
+    model = models.resnet18(pretrained=True)
+    num_features = model.fc.in_features
+    model.fc = nn.Linear(num_features, NUM_CLASSES)
+    model.to(device)
     print(device)
     print(args)
     if (args.train):
