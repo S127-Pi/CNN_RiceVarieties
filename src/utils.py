@@ -12,7 +12,6 @@ def get_device():
                         "cpu")
     return device
 
-# Set seed for reproducibility
 def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
@@ -42,3 +41,19 @@ def load_model(model):
     else:
         warnings.warn("Checkpoint file not found.", ResourceWarning)
         return model
+
+def load_hyperparameter():
+    if os.path.exists(f"{args.checkpoint}/checkpoint_hyperparams.txt"):
+        with open(f"{args.checkpoint}/checkpoint_hyperparams.txt", 'r') as file:
+                content = file.read()
+                dict_hyper = eval(content)
+                batch_size , lr, momentum, weight_decay = dict_hyper.values()
+                args.batch_size = int(batch_size)
+                args.lr = float(lr)
+                args.weight_decay = float(weight_decay)
+                args.momentum = float(momentum)
+                
+                print("Hyperparameters loaded")
+                print(f"{batch_size=}, {lr=}, {momentum=}, {weight_decay=}")
+    else:
+        print("Hyperparameters not loaded")

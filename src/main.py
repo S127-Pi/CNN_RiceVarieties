@@ -43,9 +43,11 @@ def train(model, device):
                               batch_size=args.batch_size, pin_memory=True)
     validation_loader = DataLoader(validation_set, batch_size=args.batch_size, shuffle=False, pin_memory=True)
     
+    # Load tuned hyperparameters if exists
+    load_hyperparameter()
     # Loss function, optimizer, and early stopping criterion
     loss_function = nn.CrossEntropyLoss()
-    optimizer = SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.0001)
+    optimizer = SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
     early_stopping = EarlyStopping(tolerance=5, min_delta=10)
 
     checkpoint = {}
@@ -117,7 +119,7 @@ def train(model, device):
         validation_f1_score = multiclass_f1_score(
                                         torch.tensor(all_predictions),
                                         torch.tensor(all_labels),
-                                        num_classes=4,
+                                        num_classes=args.num_classes,
                                         average="weighted"
                                         ).item()
         validation_accuracy = validation_accuracy/validation_size
@@ -212,7 +214,7 @@ if __name__ == '__main__':
     model = pretrained_model 
     model.to(device)
 
-    print(device)
+    print(f"{device=}")
     print(args)
     if (args.train):
         train(model, device)
