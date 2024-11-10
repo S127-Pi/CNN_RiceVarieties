@@ -16,12 +16,14 @@ import warnings
 from config import args
 from earlystopping import EarlyStopping
 from utils import *
-from model import CNNModel
+from model import *
 from dataset import *
 
 def train(model, device):
     warnings.filterwarnings("ignore")
     set_seed(42)
+
+    # Create the training and validation data
     train_set = CustomImageFolder(root=args.train_dir)
     train_size = int(0.8 * len(train_set)) 
     validation_size = len(train_set) - train_size
@@ -41,8 +43,9 @@ def train(model, device):
                               batch_size=args.batch_size, pin_memory=True)
     validation_loader = DataLoader(validation_set, batch_size=args.batch_size, shuffle=False, pin_memory=True)
     
-    optimizer = SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.0001)
+    # Loss function, optimizer, and early stopping criterion
     loss_function = nn.CrossEntropyLoss()
+    optimizer = SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.0001)
     early_stopping = EarlyStopping(tolerance=5, min_delta=10)
 
     checkpoint = {}
@@ -60,12 +63,12 @@ def train(model, device):
         validation_loss = 0.0
         
         validation_f1_score = 0.0
-        train_f1_scores = []
         total_size = 0
         class_counter = Counter()
         all_predictions = []
         all_labels = []
         
+        # Training
         model.train()
         for i, (images, labels, _) in tqdm(enumerate(train_loader), desc="Mini-Batch"):
             
@@ -93,13 +96,13 @@ def train(model, device):
         train_accuracy = train_accuracy/total_size
         train_loss = train_loss/total_size
         train_epoch_accuracy.append(train_accuracy)
-        # train_f1_score = sum(train_f1_scores) / len(train_f1_scores)
         print(class_counter)
         
         
         all_predictions = []
         all_labels = []
         model.eval()
+        # Validation
         with torch.no_grad():
             for i, (images, labels, _) in enumerate(validation_loader):
                 images, labels = images.to(device), labels.to(device)
@@ -111,43 +114,41 @@ def train(model, device):
                 all_predictions.extend(predictions.cpu().numpy())
                 all_labels.extend(labels.cpu().numpy())
 
-            validation_f1_score = multiclass_f1_score(
-                                            torch.tensor(all_predictions),
-                                            torch.tensor(all_labels),
-                                            num_classes=4,
-                                            average="weighted"
-                                            ).item()
-            validation_accuracy = validation_accuracy/validation_size
-            validation_loss = validation_loss/validation_size
-            validation_epoch_accuracy.append(validation_accuracy)
-            
-            if validation_accuracy > best_accuracy:
-                best_accuracy = validation_accuracy
-                # best_state_dict = {key: value.cpu() for key, value in model.state_dict().items()}
-                # checkpoint["Training accuracy"], checkpoint["Validation accuracy"] = train_accuracy, validation_accuracy
-            if validation_f1_score > best_f1:
-                best_f1 = validation_f1_score
-                best_state_dict = {key: value.cpu() for key, value in model.state_dict().items()}
-                checkpoint["Training F1"], checkpoint["Validation F1"] = train_f1_score, validation_f1_score
+        validation_f1_score = multiclass_f1_score(
+                                        torch.tensor(all_predictions),
+                                        torch.tensor(all_labels),
+                                        num_classes=4,
+                                        average="weighted"
+                                        ).item()
+        validation_accuracy = validation_accuracy/validation_size
+        validation_loss = validation_loss/validation_size
+        validation_epoch_accuracy.append(validation_accuracy)
+        
+        if validation_accuracy > best_accuracy:
+            best_accuracy = validation_accuracy
+        if validation_f1_score > best_f1:
+            best_f1 = validation_f1_score
+            best_state_dict = {key: value.cpu() for key, value in model.state_dict().items()}
+            checkpoint["Training F1"], checkpoint["Validation F1"] = train_f1_score, validation_f1_score
                 
-
-        # print(f"{epoch=},{train_accuracy=},{train_loss=},{validation_accuracy=},{validation_loss=}, {best_accuracy=}")
         print(f"{epoch=},{train_accuracy=},{train_f1_score=}, {validation_accuracy=}, {validation_f1_score=}, {best_f1=}")
 
-        # early stopping
+        # Early stopping
         early_stopping(train_loss, validation_loss)
         if early_stopping.early_stop:
             print(f"Early stopping at epoch:{epoch}\n {checkpoint=}")
             break
+
+    # Plot training and accuracy curve
     try:
         plot_accuracy(args.epochs, train_epoch_accuracy, validation_epoch_accuracy )
     except Exception as e:
         print(e)
 
+    # Save checkpoints
     if not os.path.exists(args.checkpoint):
         os.mkdir(args.checkpoing)
-    torch.save(best_state_dict, f"{args.checkpoint}/CNNmodel.pt")
-
+    torch.save(best_state_dict, f"{args.checkpoint}/model.pt")
     try:
         with open(f'{args.checkpoint}/checkpoint_train.txt', 'w') as file:
             file.write(json.dumps(checkpoint)) 
@@ -156,6 +157,7 @@ def train(model, device):
 
 def test(model, device):
     set_seed(42)
+    # Load model and data
     model = load_model(model).to(device)
     test_dataset = CustomImageFolder(root=args.test_dir)
     test_dataset = TransformedDataset(test_dataset)
@@ -169,14 +171,13 @@ def test(model, device):
     all_labels = []
 
     model.eval()
+    # Model testing
     with torch.no_grad():
         for i, (images, labels, paths) in enumerate(test_loader):
             images, labels = images.to(device), labels.to(device)
             outputs=model(images)
             _, predictions = torch.max(outputs.data, 1)
             test_accuracy += int(torch.sum(predictions==labels.data))
-            # test_batch_f1 = multiclass_f1_score(predictions, labels, num_classes=4, average="weighted")
-            # test_f1_scores.append(test_batch_f1.item())
             all_predictions.extend(predictions.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
             
@@ -186,19 +187,19 @@ def test(model, device):
                     'label': label.item(),
                     'prediction': prediction.item()
                 })
+        
         test_accuracy = test_accuracy/len(test_dataset)
-        # test_f1_score = sum(test_f1_scores) / len(test_f1_scores)   
-        test_f1_score = multiclass_f1_score(
-                                            torch.tensor(all_predictions),
+        test_f1_score = multiclass_f1_score(torch.tensor(all_predictions),
                                             torch.tensor(all_labels),
                                             num_classes=4,
                                             average="weighted"
-                                            )
+                                            ).item()
         print(f"{test_accuracy=},{test_f1_score=}")
         checkpoint["Test accuracy"] = test_accuracy
-        checkpoint["Test F1"] = test_f1_score.item()
+        checkpoint["Test F1"] = test_f1_score
         df_results = pd.DataFrame(results)
 
+    # Save checkpoint
     try:
         with open(f'{args.checkpoint}/checkpoint_test.txt', 'w') as file:
             file.write(json.dumps(checkpoint)) 
@@ -209,12 +210,11 @@ def test(model, device):
 
 if __name__ == '__main__':
     device = get_device()
-    # model = CNNModel(num_classes=4).to(device)
-    NUM_CLASSES = 4
-    model = models.resnet18(pretrained=True)
+    model = pretrained_model
     num_features = model.fc.in_features
-    model.fc = nn.Linear(num_features, NUM_CLASSES)
+    model.fc = nn.Linear(num_features, args.num_classes) # Adjust final layer
     model.to(device)
+
     print(device)
     print(args)
     if (args.train):

@@ -33,9 +33,9 @@ def plot_accuracy(epochs, train_accuracy, validation_accuracy):
 def load_model(model):
     warnings.filterwarnings("ignore")
     device = get_device()
-    if os.path.exists(f"{args.checkpoint}/CNNmodel.pt"):
+    if os.path.exists(f"{args.checkpoint}/model.pt"):
         # Load the model if the file exists
-        model.load_state_dict(torch.load(f"{args.checkpoint}/CNNmodel.pt"))
+        model.load_state_dict(torch.load(f"{args.checkpoint}/model.pt"))
         model.to(device)
         model.eval()
         print("Model loaded")
