@@ -94,7 +94,7 @@ if __name__ == "__main__":
     study.optimize(objective, n_trials=5)
 
     print("Best hyperparameters:", study.best_params)
-    print("Best accuracy:", study.best_value)
+    print("Best F1-score:", study.best_value)
 
     try:
         with open(f'{args.checkpoint}/checkpoint_hyperparams.txt', 'w') as file:
