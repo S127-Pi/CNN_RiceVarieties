@@ -16,6 +16,7 @@ This project aims to classify different varieties of rice grains using a Convolu
   - **main.py**: Main entry point for training and testing the model.
   - **model.py**: Defines the model.
   - **utils.py**: Contains various utility functions used throughout the project.
+- **requirements.txt**: Contains dependencies for the project,
 
 ## Getting Started
 
