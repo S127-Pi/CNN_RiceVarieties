@@ -9,7 +9,7 @@ from torcheval.metrics.functional import multiclass_f1_score
 from config import *
 from dataset import *
 from utils import *
-from model import *
+from model import pretrained_model
 
 
 def objective(trial):

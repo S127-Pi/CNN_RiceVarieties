@@ -16,7 +16,7 @@ import warnings
 from config import args
 from earlystopping import EarlyStopping
 from utils import *
-from model import *
+from model import pretrained_model
 from dataset import *
 
 def train(model, device):
@@ -96,6 +96,7 @@ def train(model, device):
                                             average="weighted"
                                             ).item()
         train_accuracy = train_accuracy/total_size
+        checkpoint["Training accuracy"] = train_accuracy
         train_loss = train_loss/total_size
         train_epoch_accuracy.append(train_accuracy)
         print(class_counter)
@@ -133,7 +134,7 @@ def train(model, device):
             best_state_dict = {key: value.cpu() for key, value in model.state_dict().items()}
             checkpoint["Training F1"], checkpoint["Validation F1"] = train_f1_score, validation_f1_score
                 
-        print(f"{epoch=},{train_accuracy=},{train_f1_score=}, {validation_accuracy=}, {validation_f1_score=}, {best_f1=}")
+        print(f"{epoch=}, {train_accuracy=}, {train_f1_score=}, {validation_accuracy=}, {validation_f1_score=}, {best_f1=}")
 
         # Early stopping
         early_stopping(train_loss, validation_loss)
