@@ -55,7 +55,7 @@ def objective(trial):
     model.train()
     for epoch in tqdm(range(3), desc="epoch"):  # Adjust number of epochs as needed
         running_loss = 0.0
-        for (images, labels, _) in tqdm(train_loader, des="Mini-batch"):
+        for (images, labels, _) in tqdm(train_loader, desc="Mini-batch"):
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = model(images)
