@@ -82,7 +82,7 @@ def objective(trial):
     validation_f1_score = multiclass_f1_score(torch.tensor(all_predictions),
                                               torch.tensor(all_labels),
                                               num_classes=4,
-                                              average="weighted").item()
+                                              average="micro").item()
     accuracy = correct / total
     return validation_f1_score
 

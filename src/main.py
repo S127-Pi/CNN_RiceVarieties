@@ -93,7 +93,7 @@ def train(model, device):
                                             torch.tensor(all_predictions),
                                             torch.tensor(all_labels),
                                             num_classes=4,
-                                            average="weighted"
+                                            average="micro"
                                             ).item()
         train_accuracy = train_accuracy/total_size
         checkpoint["Training accuracy"] = train_accuracy
@@ -121,7 +121,7 @@ def train(model, device):
                                         torch.tensor(all_predictions),
                                         torch.tensor(all_labels),
                                         num_classes=args.num_classes,
-                                        average="weighted"
+                                        average="micro"
                                         ).item()
         validation_accuracy = validation_accuracy/validation_size
         validation_loss = validation_loss/validation_size
@@ -194,7 +194,7 @@ def test(model, device):
     test_f1_score = multiclass_f1_score(torch.tensor(all_predictions),
                                         torch.tensor(all_labels),
                                         num_classes=4,
-                                        average="weighted"
+                                        average="micro"
                                         ).item()
     print(f"{test_accuracy=},{test_f1_score=}")
     checkpoint["Test accuracy"] = test_accuracy
