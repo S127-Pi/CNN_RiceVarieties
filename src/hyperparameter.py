@@ -83,13 +83,13 @@ def objective(trial):
     validation_f1_score = multiclass_f1_score(torch.tensor(all_predictions),
                                               torch.tensor(all_labels),
                                               num_classes=4,
-                                              average="micro").item()
+                                              average="macro").item()
     accuracy = correct / total
     return validation_f1_score
 
 
 if __name__ == "__main__":
-    study = optuna.create_study(direction='maximize')
+    study = optuna.create_study(direction='maximize', study_name="Hyperparameter Optimization")
     study.optimize(objective, n_trials=5)
 
     print("Best hyperparameters:", study.best_params)

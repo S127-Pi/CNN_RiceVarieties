@@ -93,7 +93,7 @@ def train(model, device):
                                             torch.tensor(all_predictions),
                                             torch.tensor(all_labels),
                                             num_classes=4,
-                                            average="micro"
+                                            average="macro"
                                             ).item()
         train_accuracy = train_accuracy/total_size
         checkpoint["Training accuracy"] = train_accuracy
@@ -121,7 +121,7 @@ def train(model, device):
                                         torch.tensor(all_predictions),
                                         torch.tensor(all_labels),
                                         num_classes=args.num_classes,
-                                        average="micro"
+                                        average="macro"
                                         ).item()
         validation_accuracy = validation_accuracy/validation_size
         validation_loss = validation_loss/validation_size
