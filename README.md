@@ -25,3 +25,12 @@ This project aims to classify different varieties of rice grains using a Convolu
 - Python 3.8 or newer
 - Required libraries can be installed via:
   ```pip install -r requirements.txt```
+
+### Model Testing
+To test the model, navigate to the `scripts` directory and run the testing script:
+
+```bash
+cd scripts && ./test.sh
+```
+
+
