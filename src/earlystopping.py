@@ -1,4 +1,5 @@
 class EarlyStopping:
+    """This class defines an early stopping function"""
     def __init__(self, tolerance=5, min_delta=0):
 
         self.tolerance = tolerance

@@ -5,6 +5,7 @@ import torch
 from config import *
 
 class CustomImageFolder(datasets.ImageFolder):
+    """Custom Image Folder according to the labels"""
     def __init__(self, root=args.train_dir):
         super().__init__(root=root)
         self.labels_dict = {"breed9": 0, "breed28": 1, "breed41": 2, "other": 3}
@@ -20,6 +21,7 @@ class CustomImageFolder(datasets.ImageFolder):
         
         return image, custom_label, image_path
 class TransformedDataset(torch.utils.data.Dataset):
+    """Transforms the dataset"""
     def __init__(self, dataset, transform=None):
         self.dataset = dataset
         self.transform = transforms.Compose([transforms.Resize((150, 150)), 
