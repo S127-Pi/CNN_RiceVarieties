@@ -53,7 +53,6 @@ def train(model, device):
 
     checkpoint = {}
     num_epochs = args.epochs
-    best_accuracy = 0.0
     best_state_dict = None
     train_epoch_accuracy = []
     validation_epoch_accuracy = []
