@@ -1,7 +1,6 @@
 # %%
 from tqdm import tqdm
 import torch
-from torchvision import models
 import torch.nn as nn
 from torch.optim import SGD
 from torch.utils.data import random_split, DataLoader, WeightedRandomSampler
@@ -16,7 +15,7 @@ import warnings
 from config import args
 from earlystopping import EarlyStopping
 from utils import *
-from model import pretrained_model
+from model import *
 from dataset import *
 
 def train(model, device):
@@ -35,6 +34,8 @@ def train(model, device):
     class_sample_count = np.array([len(np.where(targets == t)[0]) for t in np.unique(targets)])
     weight = 1. / class_sample_count  # Inverse of class frequencies
 
+    # Load tuned hyperparameters if exists
+    load_hyperparameter()
     # Assign weights to each sample based on its class
     samples_weight = np.array([weight[int(t)] for t in targets])
     samples_weight = torch.from_numpy(samples_weight)
@@ -43,8 +44,8 @@ def train(model, device):
                               batch_size=args.batch_size, pin_memory=True)
     validation_loader = DataLoader(validation_set, batch_size=args.batch_size, shuffle=False, pin_memory=True)
     
-    # Load tuned hyperparameters if exists
-    load_hyperparameter()
+    print(f"{args.batch_size=}, {args.lr=}, {args.momentum=}, {args.weight_decay=}")
+    
     # Loss function, optimizer, and early stopping criterion
     loss_function = nn.CrossEntropyLoss()
     optimizer = SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
@@ -194,7 +195,7 @@ def test(model, device):
     test_f1_score = multiclass_f1_score(torch.tensor(all_predictions),
                                         torch.tensor(all_labels),
                                         num_classes=4,
-                                        average="micro"
+                                        average="macro"
                                         ).item()
     print(f"{test_accuracy=},{test_f1_score=}")
     checkpoint["Test accuracy"] = test_accuracy
@@ -212,7 +213,8 @@ def test(model, device):
 
 if __name__ == '__main__':
     device = get_device()
-    model = pretrained_model 
+    model = pretrained_model
+    # model = CNNModel()
     model.to(device)
 
     print(f"{device=}")

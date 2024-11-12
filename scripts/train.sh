@@ -1,1 +1,1 @@
-cd ../src && python main.py --train True --test True
+cd ../src && python main.py --train True --test True && cd ../scripts

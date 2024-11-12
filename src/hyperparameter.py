@@ -10,10 +10,11 @@ from torcheval.metrics.functional import multiclass_f1_score
 from config import *
 from dataset import *
 from utils import *
-from model import pretrained_model
+from model import *
 
 
 def objective(trial):
+    set_seed(42)
     # Hyperparameters
     batch_size = trial.suggest_int('batch_size', 64, 128 )
     lr = trial.suggest_float('lr', 1e-5, 1e-1, log=True)
@@ -21,7 +22,6 @@ def objective(trial):
     weight_decay = trial.suggest_float('weight_decay', 1e-5, 1e-1, log=True)
 
     # DataLoader
-    set_seed(42)
     train_set = CustomImageFolder(root=args.train_dir)
     train_size = int(0.8 * len(train_set)) 
     validation_size = len(train_set) - train_size
@@ -43,6 +43,7 @@ def objective(trial):
 
     # Model
     model = pretrained_model
+    # model = CNNModel()
     device = get_device()
     model.to(device)
 
@@ -63,7 +64,7 @@ def objective(trial):
             optimizer.step()
             running_loss += loss.item()
 
-    # Validation loop
+    # Validation
     model.eval()
     correct = 0
     total = 0
@@ -90,7 +91,7 @@ def objective(trial):
 
 if __name__ == "__main__":
     study = optuna.create_study(direction='maximize', study_name="Hyperparameter Optimization")
-    study.optimize(objective, n_trials=5)
+    study.optimize(objective, n_trials=3)
 
     print("Best hyperparameters:", study.best_params)
     print("Best F1-score:", study.best_value)
