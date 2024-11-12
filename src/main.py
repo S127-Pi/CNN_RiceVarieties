@@ -213,8 +213,7 @@ def test(model, device):
 
 if __name__ == '__main__':
     device = get_device()
-    model = pretrained_model
-    # model = CNNModel()
+    model = load_pretrained_model()
     model.to(device)
 
     print(f"{device=}")

@@ -42,8 +42,7 @@ def objective(trial):
     validation_loader = DataLoader(validation_set, batch_size=batch_size, shuffle=False, pin_memory=True)
 
     # Model
-    model = pretrained_model
-    # model = CNNModel()
+    model = load_pretrained_model()
     device = get_device()
     model.to(device)
 
@@ -53,7 +52,7 @@ def objective(trial):
 
     # Training
     model.train()
-    for epoch in tqdm(range(3), desc="epoch"):  # Adjust number of epochs as needed
+    for epoch in tqdm(range(3), desc="epoch"):
         running_loss = 0.0
         for (images, labels, _) in tqdm(train_loader, desc="Mini-batch"):
             images, labels = images.to(device), labels.to(device)
@@ -85,7 +84,6 @@ def objective(trial):
                                               torch.tensor(all_labels),
                                               num_classes=4,
                                               average="macro").item()
-    accuracy = correct / total
     return validation_f1_score
 
 
