@@ -128,12 +128,11 @@ def train(model, device):
         validation_loss = validation_loss/validation_size
         validation_epoch_accuracy.append(validation_accuracy)
         
-        if validation_accuracy > best_accuracy:
-            best_accuracy = validation_accuracy
+        # F1-score check
         if validation_f1_score > best_f1:
             best_f1 = validation_f1_score
             best_state_dict = {key: value.cpu() for key, value in model.state_dict().items()}
-            checkpoint["Validation Accuracy"], checkpoint["Training F1"], checkpoint["Validation F1"] = best_accuracy, train_f1_score, validation_f1_score
+            checkpoint["Validation Accuracy"], checkpoint["Training F1"], checkpoint["Validation F1"] = validation_accuracy, train_f1_score, validation_f1_score
                 
         print(f"{epoch=}, {train_accuracy=}, {train_f1_score=}, {validation_accuracy=}, {validation_f1_score=}, {best_f1=}")
 
